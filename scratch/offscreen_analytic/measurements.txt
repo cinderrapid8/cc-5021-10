@@ -1,0 +1,6 @@
+# backend=fast jacobian=analytic
+scale=0.85             contact max   0.06 mm | mean  0.01 mm | hover max   0.00 mm | limit  0.00 deg | bone drift 0.000 mm | unreachable: -
+scale=1.0              contact max   0.00 mm | mean  0.00 mm | hover max   0.00 mm | limit  0.00 deg | bone drift 0.000 mm | unreachable: -
+scale=1.15             contact max   0.00 mm | mean  0.00 mm | hover max   0.00 mm | limit  0.00 deg | bone drift 0.000 mm | unreachable: -
+adjacent_switch        contact max   0.00 mm | mean  0.00 mm | hover max   0.00 mm | limit  0.00 deg | bone drift 0.000 mm | unreachable: -
+budget: iters=1172 solve_time=1.045s fk_full=1638 fk_partial=0 cache_hits=828 node_updates=27846

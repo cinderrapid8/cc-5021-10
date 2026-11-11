@@ -32,9 +32,21 @@ class Flute:
     def __post_init__(self):
         if self.overrides is None:
             self.overrides = {}
+        # Bumped on every explicit geometry edit so dependent solvers can
+        # invalidate caches instead of silently reusing stale targets.
+        self.geometry_revision = 0
 
     def n_holes(self) -> int:
         return len(self.hole_y)
+
+    def set_override(self, finger: int, position: np.ndarray) -> None:
+        self.overrides[finger] = np.asarray(position, dtype=float).copy()
+        self.geometry_revision += 1
+
+    def clear_override(self, finger: int) -> None:
+        if finger in self.overrides:
+            del self.overrides[finger]
+            self.geometry_revision += 1
 
     def hole_position(self, hole: int) -> np.ndarray:
         """Pad contact point: on the +Z (top) surface of the tube."""

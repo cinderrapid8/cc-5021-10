@@ -111,12 +111,14 @@ class FingeringApp:
             cur[1], cur[2] = me.xdata, me.ydata
         else:
             cur[1], cur[0] = me.xdata, me.ydata
-        self.flute.overrides[f] = cur
+        # Bumps flute.geometry_revision; the sampler invalidates its FK cache
+        # on the next pose_at instead of reusing a stale pad position.
+        self.flute.set_override(f, cur)
         self.radio.set_active(f)
         self._redraw()
 
     def _reset_target(self, _):
-        self.flute.overrides.pop(self.selected_finger, None)
+        self.flute.clear_override(self.selected_finger)
         self._redraw()
 
     def _export(self, _):

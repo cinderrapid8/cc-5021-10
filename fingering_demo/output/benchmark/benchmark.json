@@ -1,0 +1,206 @@
+{
+  "contract": {
+    "contact_threshold_m": 0.004,
+    "max_iters": 150,
+    "n_samples": 81,
+    "timing_repeats": 5,
+    "full_tree_nodes": 17,
+    "finger_chain_nodes": 4
+  },
+  "scenarios": {
+    "fast_retarget": {
+      "note": "0.45s clips, 0.35s transitions; every sample crosses a blend",
+      "target_moves": 0,
+      "rows": [
+        {
+          "backend": "reference",
+          "jacobian_mode": "fd",
+          "wall_time_s": "9.1934",
+          "solve_time_s": "9.5635",
+          "max_contact_residual_mm": "0.0064",
+          "mean_contact_residual_mm": "0.0007",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 65516,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 81,
+          "node_updates": 1113772,
+          "iterations_total": 2845
+        },
+        {
+          "backend": "fast_hybrid",
+          "jacobian_mode": "hybrid",
+          "wall_time_s": "2.7905",
+          "solve_time_s": "3.0352",
+          "max_contact_residual_mm": "0.0064",
+          "mean_contact_residual_mm": "0.0007",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3965,
+          "fk_partial_evals": 45520,
+          "fk_cache_hits": 1887,
+          "node_updates": 249485,
+          "iterations_total": 2845
+        },
+        {
+          "backend": "fast_analytic",
+          "jacobian_mode": "analytic",
+          "wall_time_s": "1.4288",
+          "solve_time_s": "1.4247",
+          "max_contact_residual_mm": "0.0029",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3081,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 1461,
+          "node_updates": 52377,
+          "iterations_total": 2190
+        }
+      ],
+      "timings": {
+        "reference": {
+          "best_wall_s": 9.19335937796859,
+          "median_wall_s": 9.326535253960174,
+          "all_wall_s": [
+            9.19335937796859,
+            9.307207087986171,
+            9.326535253960174,
+            9.504937046964187,
+            9.573337546025869
+          ]
+        },
+        "fast_hybrid": {
+          "best_wall_s": 2.7905022929771803,
+          "median_wall_s": 3.0454321680008434,
+          "all_wall_s": [
+            2.866612502024509,
+            3.2234639180242084,
+            2.7905022929771803,
+            3.5736135020270012,
+            3.0454321680008434
+          ]
+        },
+        "fast_analytic": {
+          "best_wall_s": 1.428793917002622,
+          "median_wall_s": 1.4852188759832643,
+          "all_wall_s": [
+            1.4321919169742614,
+            1.4852188759832643,
+            1.491512166976463,
+            1.7102686670259573,
+            1.428793917002622
+          ]
+        }
+      },
+      "speedup_vs_reference": {
+        "reference": 1.0,
+        "fast_hybrid": 3.29,
+        "fast_analytic": 6.43
+      }
+    },
+    "moving_target": {
+      "note": "index target repositioned before every sample -> cache invalidated",
+      "target_moves": 81,
+      "rows": [
+        {
+          "backend": "reference",
+          "jacobian_mode": "fd",
+          "wall_time_s": "8.4327",
+          "solve_time_s": "8.9491",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 61560,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 81,
+          "node_updates": 1046520,
+          "iterations_total": 2673
+        },
+        {
+          "backend": "fast_hybrid",
+          "jacobian_mode": "hybrid",
+          "wall_time_s": "2.5751",
+          "solve_time_s": "2.7664",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3645,
+          "fk_partial_evals": 42768,
+          "fk_cache_hits": 1863,
+          "node_updates": 233037,
+          "iterations_total": 2673
+        },
+        {
+          "backend": "fast_analytic",
+          "jacobian_mode": "analytic",
+          "wall_time_s": "1.7572",
+          "solve_time_s": "1.8586",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3645,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 1863,
+          "node_updates": 61965,
+          "iterations_total": 2673
+        }
+      ],
+      "timings": {
+        "reference": {
+          "best_wall_s": 8.43266821198631,
+          "median_wall_s": 8.600935628986917,
+          "all_wall_s": [
+            8.834057295985986,
+            8.455734962015413,
+            8.600935628986917,
+            8.43266821198631,
+            8.957161128986627
+          ]
+        },
+        "fast_hybrid": {
+          "best_wall_s": 2.575086125987582,
+          "median_wall_s": 2.773402542981785,
+          "all_wall_s": [
+            2.650243293028325,
+            2.8353935009799898,
+            2.575086125987582,
+            2.8365617929957807,
+            2.773402542981785
+          ]
+        },
+        "fast_analytic": {
+          "best_wall_s": 1.7571590429870412,
+          "median_wall_s": 1.8638087509898469,
+          "all_wall_s": [
+            2.0882025419850834,
+            1.7571590429870412,
+            1.8367704590200447,
+            1.8818916670279577,
+            1.8638087509898469
+          ]
+        }
+      },
+      "speedup_vs_reference": {
+        "reference": 1.0,
+        "fast_hybrid": 3.27,
+        "fast_analytic": 4.8
+      }
+    }
+  }
+}

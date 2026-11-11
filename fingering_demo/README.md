@@ -13,7 +13,30 @@
   相邻孔切换的拉伸孔。
 - `ik.py`：带优先级的阻尼最小二乘（Levenberg–Marquardt）逆解。腕部正则只约束 6 个腕部
   自由度且权重很弱；接触任务（P1）优先于悬停任务（P2）。目标不可达时保留可见残差，
-  绝不通过拉长手指伪造贴合，并报告超限（设计上为 0）。
+  绝不通过拉长手指伪造贴合，并报告超限（设计上为 0）。提供两条数学等价的求解路径：
+  - `reference`（`solve_ik`，默认运行参照）：每次迭代用 22 个扰动 FK 做全有限差分雅可比；
+  - `fast`（`solve_ik_fast`）：`hybrid` 模式用解析腕部列 + 单指 4 节点子链有限差分，
+    `analytic` 模式整列由一次缓存 FK 闭式给出。两条路径共用同一初值、阻尼调度、单调
+    接受规则、关节限位钳制与接触阈值。
+- `budget.py`：约束求解预算的成本分解。计数严格按一次 LM 迭代内的工作顺序发生：
+  1. 当前 q 的残差装配 → 1 次全树 FK（精确缓存命中为 0 次节点更新）；
+  2. 雅可比装配——参照路径每个 DOF 一次全树 FK 扰动；hybrid 的 6 个腕部列为解析
+     （0 次 FK），16 个手指列各做 1 次只覆盖 4 节点的子链 FK；analytic 全部 0 次 FK；
+  3. 1 次阻尼正规方程线性求解；
+  4. 候选步：限位钳制后再做 1 次残差装配（1 次全树 FK）；
+  5. 单调接受/拒绝与阻尼更新。
+  `node_updates = fk_full*17 + fk_partial*4` 把全树与单指更新放到同一口径。参照路径
+  每次迭代 24 次全树 FK（61 个姿态共 34,982 次）；任何提速都必须与同口径残差一起报告，
+  禁止以穿透或超限换取帧率。
+- `skeleton.py` 的 FK 带单条目精确缓存（以 q 内容与几何版本号为键）与
+  `fk_finger_partial` 子链更新；`flute.set_override/clear_override` 与
+  `PoseSampler.invalidate_target_cache` 通过几何版本号在手指目标/乐器位置变化时立即
+  失效缓存，杜绝陈旧指腹位置进入下一次求解。
+- `benchmark.py`：指法性能基准，入库为可复现脚本而非一次性数字。`fast_retarget`
+  用 0.45 s 短片段 + 0.35 s 过渡制造快速换指负载；`moving_target` 在每个采样前拖动
+  食指目标并强制缓存失效。所有阈值显式给出（接触 4 mm、150 次迭代上限、81 采样、
+  5 次计时），不存在可遮错的静默默认值：残差、收敛率、超限或骨长漂移劣化时直接
+  `AssertionError`，不会只输出帧率提升。
 - `timeline.py` / `animation.py`：指法片段与时间线。过渡窗口内目标位置与开合权重用
   smoothstep 平滑混合，接触的建立与解除连续。每个姿态都从**固定的半屈曲初值**独立求解，
   所以 `pose_at(t)` 是时间的纯函数——任意时间跳转都得到确定姿态，与播放历史无关。
@@ -30,10 +53,15 @@ pip install -r requirements.txt
 # 交互界面（需要图形环境；无显示环境会自动回退 Agg）
 python -m fingering.ui
 
-# 离屏：测量报告 + 关节曲线 + 接触标记 + 关键帧 PNG
+# 离屏：测量报告 + 关节曲线 + 接触标记 + 关键帧 PNG（默认参照求解器）
 python -m fingering.offscreen --out output
+# 同一报告切到快速后端，measurements.txt 末行附求解预算与耗时
+python -m fingering.offscreen --out output_fast --backend fast --jacobian hybrid
 
-# 测试
+# 性能基准：快速换指 + 目标移动负载，残差/耗时/预算分解并带正确性闸门
+python -m fingering.benchmark --out output/benchmark
+
+# 测试（含缓存失效、解析雅可比、预算计数与基准闸门）
 python -m pytest tests/ -q
 ```
 

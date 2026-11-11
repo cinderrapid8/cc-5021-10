@@ -1,0 +1,206 @@
+{
+  "contract": {
+    "contact_threshold_m": 0.004,
+    "max_iters": 150,
+    "n_samples": 81,
+    "timing_repeats": 5,
+    "full_tree_nodes": 17,
+    "finger_chain_nodes": 4
+  },
+  "scenarios": {
+    "fast_retarget": {
+      "note": "0.45s clips, 0.35s transitions; every sample crosses a blend",
+      "target_moves": 0,
+      "rows": [
+        {
+          "backend": "reference",
+          "jacobian_mode": "fd",
+          "wall_time_s": "9.0745",
+          "solve_time_s": "9.1295",
+          "max_contact_residual_mm": "0.0064",
+          "mean_contact_residual_mm": "0.0007",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 65516,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 81,
+          "node_updates": 1113772,
+          "iterations_total": 2845
+        },
+        {
+          "backend": "fast_hybrid",
+          "jacobian_mode": "hybrid",
+          "wall_time_s": "2.7261",
+          "solve_time_s": "2.7209",
+          "max_contact_residual_mm": "0.0064",
+          "mean_contact_residual_mm": "0.0007",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3965,
+          "fk_partial_evals": 45520,
+          "fk_cache_hits": 1887,
+          "node_updates": 249485,
+          "iterations_total": 2845
+        },
+        {
+          "backend": "fast_analytic",
+          "jacobian_mode": "analytic",
+          "wall_time_s": "2.0009",
+          "solve_time_s": "5.3180",
+          "max_contact_residual_mm": "0.0029",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3081,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 1461,
+          "node_updates": 52377,
+          "iterations_total": 2190
+        }
+      ],
+      "timings": {
+        "reference": {
+          "best_wall_s": 9.074547588010319,
+          "median_wall_s": 9.565632794983685,
+          "all_wall_s": [
+            9.724367171002086,
+            9.074547588010319,
+            9.798453545954544,
+            9.565632794983685,
+            9.137240588024724
+          ]
+        },
+        "fast_hybrid": {
+          "best_wall_s": 2.726085252012126,
+          "median_wall_s": 3.0013328759814613,
+          "all_wall_s": [
+            3.0013328759814613,
+            3.1808440849999897,
+            2.9388997930218466,
+            3.14582708501257,
+            2.726085252012126
+          ]
+        },
+        "fast_analytic": {
+          "best_wall_s": 2.000900126004126,
+          "median_wall_s": 2.4714187509962358,
+          "all_wall_s": [
+            2.000900126004126,
+            2.048072084027808,
+            2.4714187509962358,
+            6.101559711038135,
+            5.34265325195156
+          ]
+        }
+      },
+      "speedup_vs_reference": {
+        "reference": 1.0,
+        "fast_hybrid": 3.33,
+        "fast_analytic": 4.54
+      }
+    },
+    "moving_target": {
+      "note": "index target repositioned before every sample -> cache invalidated",
+      "target_moves": 81,
+      "rows": [
+        {
+          "backend": "reference",
+          "jacobian_mode": "fd",
+          "wall_time_s": "8.8387",
+          "solve_time_s": "9.3932",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 61560,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 81,
+          "node_updates": 1046520,
+          "iterations_total": 2673
+        },
+        {
+          "backend": "fast_hybrid",
+          "jacobian_mode": "hybrid",
+          "wall_time_s": "2.6688",
+          "solve_time_s": "2.6642",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3645,
+          "fk_partial_evals": 42768,
+          "fk_cache_hits": 1863,
+          "node_updates": 233037,
+          "iterations_total": 2673
+        },
+        {
+          "backend": "fast_analytic",
+          "jacobian_mode": "analytic",
+          "wall_time_s": "1.7591",
+          "solve_time_s": "1.7542",
+          "max_contact_residual_mm": "0.0016",
+          "mean_contact_residual_mm": "0.0004",
+          "max_hover_residual_mm": "0.0000",
+          "max_limit_overshoot_deg": "0.000000",
+          "max_bone_drift_mm": "0.000000",
+          "converged_fraction": "1.0000",
+          "fk_full_evals": 3645,
+          "fk_partial_evals": 0,
+          "fk_cache_hits": 1863,
+          "node_updates": 61965,
+          "iterations_total": 2673
+        }
+      ],
+      "timings": {
+        "reference": {
+          "best_wall_s": 8.8387111290358,
+          "median_wall_s": 9.251678379019722,
+          "all_wall_s": [
+            9.251678379019722,
+            9.167560046014842,
+            9.257544712978415,
+            8.8387111290358,
+            9.414392712991685
+          ]
+        },
+        "fast_hybrid": {
+          "best_wall_s": 2.6688112099654973,
+          "median_wall_s": 3.015310917980969,
+          "all_wall_s": [
+            3.464539168984629,
+            3.015310917980969,
+            2.6688112099654973,
+            3.0649252090370283,
+            2.6708277509897016
+          ]
+        },
+        "fast_analytic": {
+          "best_wall_s": 1.7591085419990122,
+          "median_wall_s": 1.959577500994783,
+          "all_wall_s": [
+            2.0336851259926334,
+            1.959577500994783,
+            1.8014903760049492,
+            2.184017209976446,
+            1.7591085419990122
+          ]
+        }
+      },
+      "speedup_vs_reference": {
+        "reference": 1.0,
+        "fast_hybrid": 3.31,
+        "fast_analytic": 5.02
+      }
+    }
+  }
+}

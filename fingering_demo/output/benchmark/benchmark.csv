@@ -1,0 +1,7 @@
+scenario,backend,jacobian_mode,wall_time_s,solve_time_s,max_contact_residual_mm,mean_contact_residual_mm,max_hover_residual_mm,max_limit_overshoot_deg,max_bone_drift_mm,converged_fraction,fk_full_evals,fk_partial_evals,fk_cache_hits,node_updates,iterations_total,speedup_vs_reference
+fast_retarget,reference,fd,9.1934,9.5635,0.0064,0.0007,0.0000,0.000000,0.000000,1.0000,65516,0,81,1113772,2845,1.0
+fast_retarget,fast_hybrid,hybrid,2.7905,3.0352,0.0064,0.0007,0.0000,0.000000,0.000000,1.0000,3965,45520,1887,249485,2845,3.29
+fast_retarget,fast_analytic,analytic,1.4288,1.4247,0.0029,0.0004,0.0000,0.000000,0.000000,1.0000,3081,0,1461,52377,2190,6.43
+moving_target,reference,fd,8.4327,8.9491,0.0016,0.0004,0.0000,0.000000,0.000000,1.0000,61560,0,81,1046520,2673,1.0
+moving_target,fast_hybrid,hybrid,2.5751,2.7664,0.0016,0.0004,0.0000,0.000000,0.000000,1.0000,3645,42768,1863,233037,2673,3.27
+moving_target,fast_analytic,analytic,1.7572,1.8586,0.0016,0.0004,0.0000,0.000000,0.000000,1.0000,3645,0,1863,61965,2673,4.8

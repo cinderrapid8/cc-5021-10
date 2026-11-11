@@ -18,6 +18,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import numpy as np
 
+# Finger DOFs start after the 6 wrist DOFs; each finger owns 4 DOFs in the
+# build order (mcp_flex, mcp_abd, pip_flex, dip_flex).
+FINGER_DOF_STRIDE = 4
+
 FINGER_NAMES = ("index", "middle", "ring", "pinky")
 HOME_HOLES = (1, 2, 3, 4)
 
@@ -163,6 +167,11 @@ class HandSkeleton:
             hi[6 + k] = dof.hi
         self.limits_lo = lo
         self.limits_hi = hi
+        self._rest_q = None
+        # FK memoization: one entry, keyed by geometry revision + q contents.
+        self._geometry_revision = 0
+        self._fk_cache_key = None
+        self._fk_cache = None
 
     # ------------------------------------------------------------------ build
     def _add_node(self, name, parent, p, R) -> int:
@@ -173,11 +182,31 @@ class HandSkeleton:
         self.dofs.append(DOF(name, node, np.array(axis, float), lo, hi))
         return 6 + len(self.dofs) - 1
 
+    # ------------------------------------------------------------- cache ctrl
+    def invalidate_geometry_cache(self) -> None:
+        """Drop memoized kinematics after an external geometry change.
+
+        Bone lengths and joint frames are model constants, so the only events
+        that can stale a cached FK are edits the embedding application makes
+        explicitly (e.g. moving an instrument target).  Callers signal such an
+        edit through this hook instead of the cache guessing on its own.
+        """
+        self._geometry_revision += 1
+        self._fk_cache_key = None
+        self._fk_cache = None
+        self._rest_q = None
+
+    def finger_dof_indices(self, finger: int) -> list[int]:
+        start = 6 + finger * FINGER_DOF_STRIDE
+        return list(range(start, start + FINGER_DOF_STRIDE))
+
     # ------------------------------------------------------------------- rest
     def rest_q(self) -> np.ndarray:
-        q = np.zeros(self.n_q)
-        q[self.wrist_pos_idx] = self.wrist_rest_p
-        return q
+        if self._rest_q is None:
+            q = np.zeros(self.n_q)
+            q[self.wrist_pos_idx] = self.wrist_rest_p
+            self._rest_q = q
+        return self._rest_q.copy()
 
     def initial_guess_q(self) -> np.ndarray:
         """Deterministic half-flexed start: keeps the solver away from the
@@ -206,8 +235,18 @@ class HandSkeleton:
         )
 
     # --------------------------------------------------------------------- FK
-    def fk(self, q: np.ndarray) -> FKResult:
-        q = np.asarray(q, dtype=float)
+    def _update_node(self, i: int, q: np.ndarray, R: np.ndarray, p: np.ndarray) -> None:
+        node = self.nodes[i]
+        Rp, pp = R[node.parent], p[node.parent]
+        R_dof = np.eye(3)
+        for di in node.dof_indices:
+            dof = self.dofs[di - 6]
+            R_dof = R_dof @ rodrigues(dof.axis, q[di])
+        # Local-frame composition: rest placement, then joint rotation.
+        R[i] = Rp @ node.rest_R @ R_dof
+        p[i] = pp + Rp @ node.rest_p
+
+    def _build_fk(self, q: np.ndarray) -> FKResult:
         n = len(self.nodes)
         R = np.zeros((n, 3, 3))
         p = np.zeros((n, 3))
@@ -218,20 +257,74 @@ class HandSkeleton:
         R[0] = self.wrist_rest_R @ delta
         p[0] = q[0:3]
 
-        for i, node in enumerate(self.nodes[1:], start=1):
-            Rp, pp = R[node.parent], p[node.parent]
-            R_dof = np.eye(3)
-            for di in node.dof_indices:
-                dof = self.dofs[di - 6]
-                R_dof = R_dof @ rodrigues(dof.axis, q[di])
-            # Local-frame composition: rest placement, then joint rotation.
-            R[i] = Rp @ node.rest_R @ R_dof
-            p[i] = pp + Rp @ node.rest_p
+        for i in range(1, n):
+            self._update_node(i, q, R, p)
 
         pads = np.zeros((4, 3))
         for f in range(4):
             tip = self.chain_nodes[f][-1]
             pads[f] = p[tip] + R[tip] @ self.pad_offsets[f]
+        return FKResult(q=q.copy(), R=R, p=p, pads=pads)
+
+    def fk(self, q: np.ndarray) -> FKResult:
+        """Forward kinematics with a one-entry exact-content cache.
+
+        The cache stores the q it was built from, so it can only hit when the
+        joint configuration is genuinely unchanged; stale geometry is ruled
+        out by the revision counter bumped in ``invalidate_geometry_cache``.
+        """
+        q = np.asarray(q, dtype=float)
+        key = (self._geometry_revision, q.shape, q.dtype.str)
+        if (
+            self._fk_cache is not None
+            and self._fk_cache_key == key
+            and np.array_equal(self._fk_cache.q, q)
+        ):
+            return self._fk_cache
+        fk = self._build_fk(q)
+        self._fk_cache_key = key
+        self._fk_cache = fk
+        return fk
+
+    def fk_with_status(self, q: np.ndarray) -> tuple[FKResult, bool]:
+        """Same memoized FK as :meth:`fk`, plus whether the cache was hit."""
+        q = np.asarray(q, dtype=float)
+        key = (self._geometry_revision, q.shape, q.dtype.str)
+        if (
+            self._fk_cache is not None
+            and self._fk_cache_key == key
+            and np.array_equal(self._fk_cache.q, q)
+        ):
+            return self._fk_cache, True
+        fk = self._build_fk(q)
+        self._fk_cache_key = key
+        self._fk_cache = fk
+        return fk, False
+
+    def fk_finger_partial(
+        self,
+        q: np.ndarray,
+        finger: int,
+        base_fk: FKResult,
+        base_q: np.ndarray,
+    ) -> FKResult:
+        """Recompute only one finger chain when its own four DOFs changed.
+
+        Wrist DOFs and the other three fingers are untouched, so their frames
+        are reused from ``base_fk`` instead of running a full 17-node FK.  The
+        wrist block of the Jacobian never takes this path: a wrist perturbation
+        moves every chain and requires a full rebuild.
+        """
+        q = np.asarray(q, dtype=float)
+        if np.any(q[0:6] != base_q[0:6]):
+            return self.fk(q)
+        R = base_fk.R.copy()
+        p = base_fk.p.copy()
+        for i in self.chain_nodes[finger]:
+            self._update_node(i, q, R, p)
+        pads = base_fk.pads.copy()
+        tip = self.chain_nodes[finger][-1]
+        pads[finger] = p[tip] + R[tip] @ self.pad_offsets[finger]
         return FKResult(q=q.copy(), R=R, p=p, pads=pads)
 
     # ------------------------------------------------------------- inspection
